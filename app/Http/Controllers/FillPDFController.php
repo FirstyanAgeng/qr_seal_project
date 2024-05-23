@@ -96,18 +96,11 @@ class FillPDFController extends Controller
         $uniqueQrCodeFilename = 'qr_code_' . Str::random(10) . '.png';
         $qrCodePath = public_path($uniqueQrCodeFilename);
 
-        $qrCodeDataUri = $qrCode->writeDataUri();
+        $qrCode->saveToFile($qrCodePath);
 
-        // Create Imagick object
         $imagick = new Imagick();
-
-        // Set QR code options
-        $imagick->setResolution(300, 300); // Set the resolution (dpi) for high-quality output
-        $imagick->readImageBlob(file_get_contents($qrCodeDataUri));
-
-        // Save the QR code image
-        $imagick->setImageFormat('png');
-        $imagick->writeImage($qrCodePath);
+        $imagick->readImage($qrCodePath);
+        $qrCodeDataUri = $imagick->getImageBlob();
         $imagick->clear();
         $imagick->destroy();
 
@@ -116,7 +109,7 @@ class FillPDFController extends Controller
         // Add QR code to the PDF
         $qrX = 20; // Adjust the position as needed
         $qrY = 140; // Adjust the position as needed
-        $fpdi->Image($qrCodePath, $qrX, $qrY, 45, 45); // Adjust size as needed
+        $fpdi->Image($qrCodeDataUri, $qrX, $qrY, 45, 45); // Adjust size as needed
 
         // Save the filled PDF to the output file
         return $fpdi->Output($outputfile, 'F');
