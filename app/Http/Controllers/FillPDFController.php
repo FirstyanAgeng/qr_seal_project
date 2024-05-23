@@ -82,6 +82,7 @@ class FillPDFController extends Controller
         $qrCodePath = public_path('qr_code.png');
         $qrCode->saveToFile($qrCodePath);
 
+
         // Add QR code to the PDF
         $qrX = 20; // Adjust the position as needed
         $qrY = 140; // Adjust the position as needed
