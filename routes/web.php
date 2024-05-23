@@ -27,11 +27,12 @@ Route::get('/home', function () {
     return view('home');
 });
 
-Route::get('/upload', function () {
-    return view('upload');
-});
+// Route::get('/upload', function () {
+//     return view('upload');
+// });
 
-Route::get('/fill', [FillPDFController::class, 'process']);
+Route::post('/process_certificate', [FillPDFController::class, 'process'])->name('process_certificate');
+Route::get('/create_certificate', [FillPDFController::class, 'create'])->name('create_certificate');
 Route::get('/document', function () {
     return view('document');
 });

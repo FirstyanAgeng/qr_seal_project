@@ -10,21 +10,33 @@ use phpseclib3\Crypt\RSA;
 
 class FillPDFController extends Controller
 {
+    public function create()
+    {
+        return view('upload');
+    }
+
     public function process(Request $request)
     {
-        $name = "Firstyan";
-        $course = "WEB DEVELOPMENT";
-        $id_course = "63453533466354";
-        $name_asignee = "Mark Zuckerberg";
-        $jabatan = "CEO OF GOOGLE";
-        $date = "Mei 20, 2024";
-        // $name = $request->post('name');
-        $outputfile = public_path() . '/dcc.pdf';
-        $this->fillPDF(public_path() . '/master/dcc.pdf', $outputfile, $name, $course, $id_course, $name_asignee, $jabatan, $date);
+        $name = $request->input('inputNamaPeserta');
+        $course = $request->input('inputJenisPelatihan');
+        $id_course = $request->input('inputNoSertifikat');
+        $name_asignee = $request->input('inputPenandatangan');
+        $date = $request->input('inputTanggalTerbit');
+        $jabatan = $request->input('inputJabatan');
+        $signatureDataUrl = $request->input('signature');
+
+        // Decode the base64 encoded signature image
+        $signatureImage = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $signatureDataUrl));
+        $signaturePath = public_path('signature.png');
+        file_put_contents($signaturePath, $signatureImage);
+
+        $outputfile = public_path('dcc.pdf');
+        $this->fillPDF(public_path('master/dcc.pdf'), $outputfile, $name, $course, $id_course, $name_asignee, $date, $jabatan);
+
         return response()->file($outputfile);
     }
 
-    public function fillPDF($file, $outputfile, $name, $course, $id_course, $name_asignee, $jabatan, $date)
+    public function fillPDF($file, $outputfile, $name, $course, $id_course, $name_asignee, $date, $jabatan)
     {
         $fpdi = new FPDI;
         $fpdi->setSourceFile($file);
@@ -32,10 +44,14 @@ class FillPDFController extends Controller
         $size = $fpdi->getTemplateSize($template);
         $fpdi->AddPage($size['orientation'], array($size['width'], $size['height']));
         $fpdi->useTemplate($template);
-        $top = 102;
-        $right = 135;
-        $top_course = 130;
-        $right_course = 100;
+        $top = 105;
+        $right = 128;
+        $top_name_asignee = 175;
+        $right_name_asignee = 110;
+        $top_jabatan = 192;
+        $right_jabatan = 90;
+        $top_course = 125;
+        $right_course = 115;
         $top_id = 145;
         $right_id = 110;
         $top_date = 192;
@@ -43,6 +59,8 @@ class FillPDFController extends Controller
         $fpdi->setFont('helvetica', '', 28);
         $fpdi->SetTextColor(25, 26, 26);
         $fpdi->Text($right, $top, $name);
+        $fpdi->Text($right_name_asignee, $top_name_asignee, $name_asignee);
+        $fpdi->Text($right_jabatan, $top_jabatan, $jabatan);
         $fpdi->Text($right_course, $top_course, $course);
         $fpdi->Text($right_id, $top_id, $id_course);
         $fpdi->Text($right_date, $top_date, $date);
