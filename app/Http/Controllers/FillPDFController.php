@@ -43,6 +43,11 @@ class FillPDFController extends Controller
 
     public function fillPDF($file, $outputfile, $name, $course, $id_course, $name_asignee, $date, $jabatan)
     {
+        if (extension_loaded('gd')) {
+            echo 'GD loaded';
+        } else {
+            echo 'GD not loaded';
+        }
         $fpdi = new FPDI;
         $fpdi->setSourceFile($file); // Load the template PDF
         $template = $fpdi->importPage(1); // Import the first page of the template
@@ -93,9 +98,6 @@ class FillPDFController extends Controller
         // Generate a unique filename for the QR code
         $uniqueQrCodeFilename = 'qr_code_' . Str::random(10) . '.png';
         $qrCodePath = public_path($uniqueQrCodeFilename);
-
-        // Debugging output for QR code path
-        \Log::info('QR Code file path: ' . $qrCodePath);
 
         $qrCode->saveToFile($qrCodePath);
 
