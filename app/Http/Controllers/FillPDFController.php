@@ -96,7 +96,7 @@ class FillPDFController extends Controller
         $uniqueQrCodeFilename = 'qr_code_' . Str::random(10) . '.png';
         $qrCodePath = public_path($uniqueQrCodeFilename);
 
-        $qrCode->saveToFile($qrCodePath);
+        $qrCode->writeFile($qrCodePath);
 
         $imagick = new Imagick();
         $imagick->readImage($qrCodePath);
