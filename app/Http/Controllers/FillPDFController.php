@@ -8,6 +8,8 @@ use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Writer\PngWriter;
 use phpseclib3\Crypt\RSA;
 use Illuminate\Support\Str;
+use Imagick;
+
 
 class FillPDFController extends Controller
 {
@@ -43,11 +45,6 @@ class FillPDFController extends Controller
 
     public function fillPDF($file, $outputfile, $name, $course, $id_course, $name_asignee, $date, $jabatan)
     {
-        if (extension_loaded('gd')) {
-            echo 'GD loaded';
-        } else {
-            echo 'GD not loaded';
-        }
         $fpdi = new FPDI;
         $fpdi->setSourceFile($file); // Load the template PDF
         $template = $fpdi->importPage(1); // Import the first page of the template
@@ -99,7 +96,20 @@ class FillPDFController extends Controller
         $uniqueQrCodeFilename = 'qr_code_' . Str::random(10) . '.png';
         $qrCodePath = public_path($uniqueQrCodeFilename);
 
-        $qrCode->saveToFile($qrCodePath);
+        // Create Imagick object
+        $imagick = new Imagick();
+
+        // Set QR code options
+        $imagick->setResolution(300, 300); // Set the resolution (dpi) for high-quality output
+        $imagick->readImageBlob($qrCode->writeString());
+
+        // Save the QR code image
+        $imagick->setImageFormat('png');
+        $imagick->writeImage($qrCodePath);
+        $imagick->clear();
+        $imagick->destroy();
+
+        // $qrCode->saveToFile($qrCodePath);
 
         // Add QR code to the PDF
         $qrX = 20; // Adjust the position as needed
