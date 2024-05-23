@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use setasign\Fpdi\Fpdi;
-use Endroid\QrCode\Builder\Builder;
-use Endroid\QrCode\Writer\PngWriter;
+use BaconQrCode\Renderer\Image\Png;
+use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Writer;
 use phpseclib3\Crypt\RSA;
 use Illuminate\Support\Str;
 use Imagick;
@@ -85,31 +86,26 @@ class FillPDFController extends Controller
         $ciphertext = $rsa->encrypt($plaintext);
 
         // Generate QR code with encrypted data
-        $qrCode = Builder::create()
-            ->writer(new PngWriter())
-            ->data(base64_encode($ciphertext)) // Encode to base64 to ensure it's a valid string for the QR code
-            ->size(100)
-            ->margin(5)
-            ->build();
+        $renderer = new ImageRenderer(
+            new Png(),
+            new \BaconQrCode\Renderer\RendererStyle\RendererStyle(400),
+            new \BaconQrCode\Renderer\Image\ImagickImageBackEnd()
+        );
 
-        // Generate a unique filename for the QR code
-        $uniqueQrCodeFilename = 'qr_code_' . Str::random(10) . '.png';
-        $qrCodePath = public_path($uniqueQrCodeFilename);
+        $writer = new Writer($renderer);
+        $qrCodeString = $writer->writeString(base64_encode($ciphertext));
 
-        $qrCode->writeFile($qrCodePath);
-
-        $imagick = new Imagick();
-        $imagick->readImage($qrCodePath);
-        $qrCodeDataUri = $imagick->getImageBlob();
-        $imagick->clear();
-        $imagick->destroy();
-
-        // $qrCode->saveToFile($qrCodePath);
+        // Convert the QR code string to image data
+        $imageData = base64_decode($qrCodeString);
 
         // Add QR code to the PDF
+        $imagick = new Imagick();
+        $imagick->readImageBlob($imageData);
+        $imagick->setImageFormat("png");
+
         $qrX = 20; // Adjust the position as needed
         $qrY = 140; // Adjust the position as needed
-        $fpdi->Image($qrCodeDataUri, $qrX, $qrY, 45, 45); // Adjust size as needed
+        $fpdi->Image('@' . $imagick->getImageBlob(), $qrX, $qrY, 45, 45); // Adjust size as needed
 
         // Save the filled PDF to the output file
         return $fpdi->Output($outputfile, 'F');
