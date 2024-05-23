@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use setasign\Fpdi\Fpdi;
+use BaconQrCode\Renderer\ImageRendererInterface;
 use BaconQrCode\Renderer\Image\Png;
-use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Renderer\Image\RendererStyle\ImageStyle;
 use BaconQrCode\Writer;
 use phpseclib3\Crypt\RSA;
 use Illuminate\Support\Str;
@@ -86,10 +87,9 @@ class FillPDFController extends Controller
         $ciphertext = $rsa->encrypt($plaintext);
 
         // Generate QR code with encrypted data
-        $renderer = new ImageRenderer(
-            new Png(),
-            new \BaconQrCode\Renderer\RendererStyle\RendererStyle(400),
-            new \BaconQrCode\Renderer\Image\ImagickImageBackEnd()
+        $renderer = new ImageRendererInterface(
+            new Png(), // Use PNG format
+            new ImageStyle(400), // Set image style (size)
         );
 
         $writer = new Writer($renderer);
