@@ -87,12 +87,12 @@ class FillPDFController extends Controller
         $ciphertext = $rsa->encrypt($plaintext);
 
         // Generate QR code with encrypted data
-        $renderer = new ImageRendererInterface(
-            new Png(), // Use PNG format
-            new ImageStyle(400), // Set image style (size)
+        $renderer = new \BaconQrCode\Renderer\Image\ImageRenderer(
+            new \BaconQrCode\Renderer\Image\Svg\SvgImageBackEnd(),
+            new \BaconQrCode\Renderer\RendererStyle\RendererStyle(4)
         );
 
-        $writer = new Writer($renderer);
+        $writer = new \BaconQrCode\Writer($renderer);
         $qrCodeString = $writer->writeString(base64_encode($ciphertext));
 
         // Convert the QR code string to image data
@@ -105,7 +105,7 @@ class FillPDFController extends Controller
 
         $qrX = 20; // Adjust the position as needed
         $qrY = 140; // Adjust the position as needed
-        $fpdi->Image('@' . $imagick->getImageBlob(), $qrX, $qrY, 45, 45); // Adjust size as needed
+        $fpdi->Image('@' . $imagick, $qrX, $qrY, 45, 45); // Adjust size as needed
 
         // Save the filled PDF to the output file
         return $fpdi->Output($outputfile, 'F');
