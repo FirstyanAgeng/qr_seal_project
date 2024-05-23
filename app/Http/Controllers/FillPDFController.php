@@ -7,6 +7,7 @@ use setasign\Fpdi\Fpdi;
 use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Writer\PngWriter;
 use phpseclib3\Crypt\RSA;
+use Illuminate\Support\Str; // For generating unique filenames
 
 class FillPDFController extends Controller
 {
@@ -30,7 +31,9 @@ class FillPDFController extends Controller
         $signaturePath = public_path('signature.png');
         file_put_contents($signaturePath, $signatureImage);
 
-        $outputfile = public_path('dcc.pdf');
+        // Generate a unique filename for the output PDF
+        $uniquePdfFilename = 'dcc_' . Str::random(10) . '.pdf';
+        $outputfile = public_path($uniquePdfFilename);
         $this->fillPDF(public_path('master/dcc.pdf'), $outputfile, $name, $course, $id_course, $name_asignee, $date, $jabatan);
 
         return response()->file($outputfile);
@@ -79,9 +82,10 @@ class FillPDFController extends Controller
             ->margin(5)
             ->build();
 
-        $qrCodePath = public_path('qr_code.png');
+        // Generate a unique filename for the QR code
+        $uniqueQrCodeFilename = 'qr_code_' . Str::random(10) . '.png';
+        $qrCodePath = public_path($uniqueQrCodeFilename);
         $qrCode->saveToFile($qrCodePath);
-
 
         // Add QR code to the PDF
         $qrX = 20; // Adjust the position as needed
