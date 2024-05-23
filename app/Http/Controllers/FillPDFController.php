@@ -7,7 +7,7 @@ use setasign\Fpdi\Fpdi;
 use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Writer\PngWriter;
 use phpseclib3\Crypt\RSA;
-use Illuminate\Support\Str; // For generating unique filenames
+use Illuminate\Support\Str;
 
 class FillPDFController extends Controller
 {
@@ -34,6 +34,8 @@ class FillPDFController extends Controller
         // Generate a unique filename for the output PDF
         $uniquePdfFilename = 'dcc_' . Str::random(10) . '.pdf';
         $outputfile = public_path($uniquePdfFilename);
+
+        // Call the fillPDF function to generate the filled PDF
         $this->fillPDF(public_path('master/dcc.pdf'), $outputfile, $name, $course, $id_course, $name_asignee, $date, $jabatan);
 
         return response()->file($outputfile);
@@ -42,11 +44,13 @@ class FillPDFController extends Controller
     public function fillPDF($file, $outputfile, $name, $course, $id_course, $name_asignee, $date, $jabatan)
     {
         $fpdi = new FPDI;
-        $fpdi->setSourceFile($file);
-        $template = $fpdi->importPage(1);
+        $fpdi->setSourceFile($file); // Load the template PDF
+        $template = $fpdi->importPage(1); // Import the first page of the template
         $size = $fpdi->getTemplateSize($template);
         $fpdi->AddPage($size['orientation'], array($size['width'], $size['height']));
         $fpdi->useTemplate($template);
+
+        // Define positions for the text fields
         $top = 105;
         $right = 128;
         $top_name_asignee = 175;
@@ -59,8 +63,12 @@ class FillPDFController extends Controller
         $right_id = 110;
         $top_date = 192;
         $right_date = 15;
+
+        // Set font and color for the text
         $fpdi->setFont('helvetica', '', 28);
         $fpdi->SetTextColor(25, 26, 26);
+
+        // Add text to the PDF at the specified positions
         $fpdi->Text($right, $top, $name);
         $fpdi->Text($right_name_asignee, $top_name_asignee, $name_asignee);
         $fpdi->Text($right_jabatan, $top_jabatan, $jabatan);
@@ -85,6 +93,10 @@ class FillPDFController extends Controller
         // Generate a unique filename for the QR code
         $uniqueQrCodeFilename = 'qr_code_' . Str::random(10) . '.png';
         $qrCodePath = public_path($uniqueQrCodeFilename);
+
+        // Debugging output for QR code path
+        \Log::info('QR Code file path: ' . $qrCodePath);
+
         $qrCode->saveToFile($qrCodePath);
 
         // Add QR code to the PDF
@@ -92,6 +104,7 @@ class FillPDFController extends Controller
         $qrY = 140; // Adjust the position as needed
         $fpdi->Image($qrCodePath, $qrX, $qrY, 45, 45); // Adjust size as needed
 
+        // Save the filled PDF to the output file
         return $fpdi->Output($outputfile, 'F');
     }
 }
