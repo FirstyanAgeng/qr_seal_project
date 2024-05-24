@@ -92,20 +92,32 @@ class FillPDFController extends Controller
             new ImagickImageBackEnd()
         );
         $writer = new Writer($renderer);
-
         $qrCodeString = $writer->writeString(base64_encode($ciphertext));
-
-        // Convert the QR code string to image data
-        $imageData = base64_decode($qrCodeString);
+        // Save the QR code image to a temporary file
+        $tmpFile = tempnam(sys_get_temp_dir(), 'qrcode');
+        file_put_contents($tmpFile, $qrCodeString);
 
         // Add QR code to the PDF
         $imagick = new Imagick();
-        $imagick->readImageBlob($imageData);
+        $imagick->readImage($tmpFile);
         $imagick->setImageFormat("png");
 
         $qrX = 20; // Adjust the position as needed
         $qrY = 140; // Adjust the position as needed
-        $fpdi->Image('@' . $imagick, $qrX, $qrY, 45, 45); // Adjust size as needed
+        $fpdi->Image($tmpFile, $qrX, $qrY, 45, 45); // Adjust size as needed
+
+        unlink($tmpFile);
+        // // Convert the QR code string to image data
+        // $imageData = base64_decode($qrCodeString);
+
+        // // Add QR code to the PDF
+        // $imagick = new Imagick();
+        // $imagick->readImageBlob($imageData);
+        // $imagick->setImageFormat("png");
+
+        // $qrX = 20; // Adjust the position as needed
+        // $qrY = 140; // Adjust the position as needed
+        // $fpdi->Image('@' . $imagick, $qrX, $qrY, 45, 45); // Adjust size as needed
 
         // Save the filled PDF to the output file
         return $fpdi->Output($outputfile, 'F');
