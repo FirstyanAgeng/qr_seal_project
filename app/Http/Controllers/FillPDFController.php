@@ -93,10 +93,10 @@ class FillPDFController extends Controller
         );
         $writer = new Writer($renderer);
         $qrCodeString = $writer->writeString(base64_encode($ciphertext));
-        // Save the QR code image to a temporary file
-        $tmpFile = tempnam(sys_get_temp_dir(), 'qrcode');
-        file_put_contents($tmpFile, $qrCodeString);
 
+        // Save the QR code image to a temporary file with a proper extension
+        $tmpFile = tempnam(sys_get_temp_dir(), 'qrcode') . '.png';
+        file_put_contents($tmpFile, $qrCodeString);
         // Add QR code to the PDF
         $imagick = new Imagick();
         $imagick->readImage($tmpFile);
