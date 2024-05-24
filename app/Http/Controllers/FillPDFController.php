@@ -4,13 +4,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use setasign\Fpdi\Fpdi;
-use BaconQrCode\Renderer\ImageRendererInterface;
-use BaconQrCode\Renderer\Image\Png;
-use BaconQrCode\Renderer\Image\RendererStyle\ImageStyle;
-use BaconQrCode\Writer;
 use phpseclib3\Crypt\RSA;
 use Illuminate\Support\Str;
 use Imagick;
+use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Renderer\Image\ImagickImageBackEnd;
+use BaconQrCode\Renderer\RendererStyle\RendererStyle;
+use BaconQrCode\Writer;
 
 
 class FillPDFController extends Controller
@@ -87,12 +87,12 @@ class FillPDFController extends Controller
         $ciphertext = $rsa->encrypt($plaintext);
 
         // Generate QR code with encrypted data
-        $renderer = new \BaconQrCode\Renderer\Image\ImageRenderer(
-            new \BaconQrCode\Renderer\Image\Svg\SvgImageBackEnd(),
-            new \BaconQrCode\Renderer\RendererStyle\RendererStyle(4)
+        $renderer = new ImageRenderer(
+            new RendererStyle(400),
+            new ImagickImageBackEnd()
         );
+        $writer = new Writer($renderer);
 
-        $writer = new \BaconQrCode\Writer($renderer);
         $qrCodeString = $writer->writeString(base64_encode($ciphertext));
 
         // Convert the QR code string to image data
