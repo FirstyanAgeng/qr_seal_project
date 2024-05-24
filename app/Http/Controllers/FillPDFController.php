@@ -101,6 +101,7 @@ class FillPDFController extends Controller
         $imagick = new Imagick();
         $imagick->readImage($tmpFile);
         $imagick->setImageFormat("png");
+        $imagick->setImageDepth(8);
 
         $qrX = 20; // Adjust the position as needed
         $qrY = 140; // Adjust the position as needed
