@@ -14,8 +14,6 @@
 <link rel="stylesheet" href="https://unpkg.com/bs-brain@2.0.3/components/logins/login-3/assets/css/login-3.css">
 </head>
   <body>
-
-
 <!-- Login 3 - Bootstrap Brain Component -->
 <section class="p-3 p-md-4 p-xl-5">
   <div class="container">
@@ -56,8 +54,6 @@
               </div>
             </div>
           </form>
-
-
         </div>
       </div>
     </div>

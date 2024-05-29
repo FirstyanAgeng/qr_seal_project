@@ -6,12 +6,11 @@ use Illuminate\Http\Request;
 use setasign\Fpdi\Fpdi;
 use phpseclib3\Crypt\RSA;
 use Illuminate\Support\Str;
-use Imagick;
 use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\Image\ImagickImageBackEnd;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
 use BaconQrCode\Writer;
-
+use Imagick;
 
 class FillPDFController extends Controller
 {
@@ -30,28 +29,23 @@ class FillPDFController extends Controller
         $jabatan = $request->input('inputJabatan');
         $signatureDataUrl = $request->input('signature');
 
-        // Decode the base64 encoded signature image
-        $signatureImage = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $signatureDataUrl));
-        $signaturePath = public_path('signature.png');
-        file_put_contents($signaturePath, $signatureImage);
-
         // Generate a unique filename for the output PDF
         $uniquePdfFilename = 'dcc_' . Str::random(10) . '.pdf';
         $outputfile = public_path($uniquePdfFilename);
 
         // Call the fillPDF function to generate the filled PDF
-        $this->fillPDF(public_path('master/dcc.pdf'), $outputfile, $name, $course, $id_course, $name_asignee, $date, $jabatan);
+        $this->fillPDF(public_path('master/dcc.pdf'), $outputfile, $name, $course, $id_course, $name_asignee, $date, $jabatan, $signatureDataUrl);
 
         return response()->file($outputfile);
     }
 
-    public function fillPDF($file, $outputfile, $name, $course, $id_course, $name_asignee, $date, $jabatan)
+    public function fillPDF($file, $outputfile, $name, $course, $id_course, $name_asignee, $date, $jabatan, $signatureDataUrl)
     {
         $fpdi = new FPDI;
         $fpdi->setSourceFile($file); // Load the template PDF
         $template = $fpdi->importPage(1); // Import the first page of the template
         $size = $fpdi->getTemplateSize($template);
-        $fpdi->AddPage($size['orientation'], array($size['width'], $size['height']));
+        $fpdi->AddPage($size['orientation'], [$size['width'], $size['height']]);
         $fpdi->useTemplate($template);
 
         // Define positions for the text fields
@@ -80,6 +74,21 @@ class FillPDFController extends Controller
         $fpdi->Text($right_id, $top_id, $id_course);
         $fpdi->Text($right_date, $top_date, $date);
 
+        // Decode the base64 encoded signature image
+        $signatureImage = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $signatureDataUrl));
+        $signatureImg = new Imagick();
+        $signatureImg->readImageBlob($signatureImage);
+        $signatureImg->setImageFormat('png');
+        $signaturePath = tempnam(sys_get_temp_dir(), 'signature') . '.png';
+        $signatureImg->writeImage($signaturePath);
+
+        // Add the signature image to the PDF
+        $signatureX = 90; // Adjust the position as needed
+        $signatureY = 155; // Adjust the position as needed
+        $fpdi->Image($signaturePath, $signatureX, $signatureY, 70, 30); // Adjust size as needed
+
+        unlink($signaturePath);
+
         // Encrypt data using RSA public key
         $publicKey = file_get_contents(storage_path('rsa_public.pem'));
         $rsa = RSA::loadPublicKey($publicKey);
@@ -97,8 +106,7 @@ class FillPDFController extends Controller
         // Save the QR code image to a temporary file with a proper extension
         $imagick = new Imagick();
         $imagick->readImageBlob($qrCodeString);
-        $imagick->setImageFormat("png");
-        $imagick->setImageDepth(8);
+        $imagick->setImageFormat('png');
         $tmpFile = tempnam(sys_get_temp_dir(), 'qrcode') . '.png';
         $imagick->writeImage($tmpFile);
 
