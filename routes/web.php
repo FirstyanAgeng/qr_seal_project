@@ -33,10 +33,17 @@ Route::get('/home', function () {
 //     return view('upload');
 // });
 
-Route::post('/process_certificate', [FillPDFController::class, 'process'])->name('process_certificate');
-Route::get('/create_certificate', [FillPDFController::class, 'create'])->name('create_certificate');
+// Route::post('/process_certificate', [FillPDFController::class, 'process'])->name('process_certificate');
+// routes/web.php
+
+Route::get('/upload', [FillPDFController::class, 'create'])->name('create_certificate');
+Route::post('/process', [FillPDFController::class, 'process'])->name('process_certificate');
+Route::post('/validate', [FillPDFController::class, 'validate'])->name('validate_certificate');
+
+// Route::get('/create_certificate', [FillPDFController::class, 'create'])->name('create_certificate');
 Route::get('/document', function () {
     return view('document');
 });
+
 
 Route::get('/admin', [AdminController::class, 'index']);
