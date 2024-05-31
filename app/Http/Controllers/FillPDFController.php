@@ -108,7 +108,7 @@ class FillPDFController extends Controller
         return $fpdi->Output($outputfile, 'F');
     }
 
-    public function validate(Request $request)
+    public function validateCertificate(Request $request)
     {
         $name = $request->input('name');
         $course = $request->input('course');
