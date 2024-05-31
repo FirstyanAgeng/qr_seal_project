@@ -20,7 +20,7 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            return redirect()->intended('create_certificate');
+            return redirect()->intended('upload');
         }
 
         return back()->withErrors([
