@@ -94,6 +94,10 @@ class FillPDFController extends Controller
         $imagick = new Imagick();
         $imagick->readImageBlob($qrCodeString);
         $imagick->setImageFormat('png');
+
+        // Ensure image is 8-bit
+        $imagick->setImageDepth(8);
+
         $tmpFile = tempnam(sys_get_temp_dir(), 'qrcode') . '.png';
         $imagick->writeImage($tmpFile);
 
@@ -107,7 +111,6 @@ class FillPDFController extends Controller
         // Save the filled PDF to the output file
         return $fpdi->Output($outputfile, 'F');
     }
-
     public function validateCertificate(Request $request)
     {
         $name = $request->input('name');
